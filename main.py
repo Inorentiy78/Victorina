@@ -13,18 +13,7 @@ class QuizApp(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        self.questions = [
-            {
-                "question": "Сколько планет в солнечной системе?",
-                "options": ["8", "9", "7", "6"],
-                "correct_answer": "8"
-            },
-            {
-                "question": "Какой год был принят за начало нового тысячелетия?",
-                "options": ["1999", "2000", "2001", "2002"],
-                "correct_answer": "2001"
-            }
-        ]
+        self.questions, self.answers = self.read_questions_and_answers_from_files("vopros.txt", "answers.txt")
 
         self.question_label = QLabel()
         self.radio_buttons = []
@@ -33,7 +22,7 @@ class QuizApp(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.question_label)
-        for i in range(len(self.questions[0]["options"])):
+        for _ in range(len(self.questions[0]["options"])):
             radio_button = QRadioButton()
             radio_button.toggled.connect(self.enable_submit)
             self.radio_buttons.append(radio_button)
@@ -45,14 +34,38 @@ class QuizApp(QWidget):
 
         self.show_question()
 
+    def read_questions_and_answers_from_files(self, questions_filename, answers_filename):
+        questions = []
+        with open(questions_filename, "r", encoding="utf-8") as questions_file:
+            question_data = questions_file.read().split("---")
+
+        answers = {}
+        with open(answers_filename, "r", encoding="utf-8") as answers_file:
+            answer_data = answers_file.read().split("\n")
+
+        for question_text, answer_line in zip(question_data, answer_data):
+            question_lines = question_text.split("\n")
+            question = {
+                "question": question_lines[0],
+                "options": question_lines[1:5],
+                "correct_answer": int(answer_line.split(": ")[1])
+            }
+            questions.append(question)
+            
+        return questions, answers
+
     def show_question(self):
         if self.current_question < len(self.questions):
             question = self.questions[self.current_question]
             self.question_label.setText(question["question"])
             options = question["options"]
             for i, radio_button in enumerate(self.radio_buttons):
-                radio_button.setText(options[i])
-                radio_button.setChecked(False)
+                if i < len(options):
+                    radio_button.setText(options[i])
+                    radio_button.setChecked(False)
+                    radio_button.setVisible(True)
+                else:
+                    radio_button.setVisible(False)
             self.submit_button.setEnabled(False)
         else:
             self.show_result()
@@ -64,7 +77,7 @@ class QuizApp(QWidget):
         selected_option = None
         for i, radio_button in enumerate(self.radio_buttons):
             if radio_button.isChecked():
-                selected_option = self.questions[self.current_question]["options"][i]
+                selected_option = i
 
         correct_answer = self.questions[self.current_question]["correct_answer"]
         if selected_option == correct_answer:
