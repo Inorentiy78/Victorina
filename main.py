@@ -69,7 +69,6 @@ class QuizApp(QWidget):
     
 
     def show_question(self):
-        print(self.current_question_number)
         if self.current_question_number < 25:  # Display and score only 25 questions
             if not self.question_indices:
                 self.show_result()
