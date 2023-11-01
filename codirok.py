@@ -31,6 +31,6 @@ with open("newshifr.txt", "w", encoding="utf-8") as file:
     file.write(encryptedQuestions)
 
 
-with open("shifanswers.txt", "w", encoding="utf-8") as file:
+with open("shifr_answers.txt", "w", encoding="utf-8") as file:
     file.write(ncryptedQuestions)
 
