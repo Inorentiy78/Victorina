@@ -29,8 +29,8 @@ ncryptedQuestions = CodeEncode(answersy, key)
 # Запись зашифрованных вопросов в файл "newshifr.txt"
 with open("newshifr.txt", "w", encoding="utf-8") as file:
     file.write(encryptedQuestions)
-print(voprosy)
+
 
 with open("shifanswers.txt", "w", encoding="utf-8") as file:
     file.write(ncryptedQuestions)
-print(answersy)
+
