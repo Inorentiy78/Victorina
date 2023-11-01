@@ -37,7 +37,7 @@ class QuizApp(QWidget):
     def read_questions_and_answers_from_files(self, questions_filename, answers_filename):
         questions = []
         with open(questions_filename, "r", encoding="utf-8") as questions_file:
-            question_data = questions_file.read().split("---")
+            question_data = questions_file.read().split("---\n")
 
         answers = {}
         with open(answers_filename, "r", encoding="utf-8") as answers_file:
@@ -79,12 +79,15 @@ class QuizApp(QWidget):
             if radio_button.isChecked():
                 selected_option = i
 
-        correct_answer = self.questions[self.current_question]["correct_answer"]
+        correct_answer = self.questions[self.current_question]["correct_answer"] - 1
+
         if selected_option == correct_answer:
             self.score += 1
 
         self.current_question += 1
         self.show_question()
+
+
 
     def show_result(self):
         QMessageBox.information(self, 'Результаты', f'Вы набрали {self.score} из {len(self.questions)} баллов.')
