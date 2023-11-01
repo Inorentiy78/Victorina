@@ -19,10 +19,18 @@ def CodeEncode(text: str, k: int):
 with open("vopros.txt", "r", encoding="utf-8") as file:
     voprosy = file.read()
 
+with open("answers.txt", "r", encoding="utf-8") as file:
+    answersy = file.read()
+
 key = 2
 encryptedQuestions = CodeEncode(voprosy, key)
+ncryptedQuestions = CodeEncode(answersy, key)
 
 # Запись зашифрованных вопросов в файл "newshifr.txt"
 with open("newshifr.txt", "w", encoding="utf-8") as file:
     file.write(encryptedQuestions)
 print(voprosy)
+
+with open("shifanswers.txt", "w", encoding="utf-8") as file:
+    file.write(ncryptedQuestions)
+print(answersy)
