@@ -1,7 +1,34 @@
-код с ошибкой
 import random
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QRadioButton, QMessageBox, QTextBrowser
+
+class QuestionParser:
+    def __init__(self, questions_file, answers_file):
+        self.questions_file = questions_file
+        self.answers_file = answers_file
+
+    def read_questions_and_answers(self):
+        questions = []
+        with open(self.questions_file, "r", encoding="utf-8") as questions_file:
+            question_data = questions_file.read().split("---\n")
+
+        with open(self.answers_file, "r", encoding="utf-8") as answers_file:
+            answer_data = answers_file.read().split("\n")
+
+        for question_block, answer_line in zip(question_data, answer_data):
+            question_lines = question_block.split("\n")
+            question = {
+                "question": question_lines[0],
+                "options": question_lines[1:5],
+                "correct_answer": int(answer_line.split(": ")[1]) - 1
+            }
+            questions.append(question)
+
+        # Shuffle the questions and select the first 25
+        random.shuffle(questions)
+        selected_questions = questions[:5]
+
+        return selected_questions
 
 class QuizApp(QWidget):
     def __init__(self, questions):
@@ -40,8 +67,7 @@ class QuizApp(QWidget):
 
     def show_question(self):
         if self.current_question < len(self.questions):
-            random_question_index = self.question_indices.pop(0)  # Извлекаем первый вопрос
-            question = self.questions[random_question_index]
+            question = self.questions[self.current_question]
 
             # Оставляем порядок вариантов ответов неизменным
             options = question["options"]
@@ -101,6 +127,7 @@ class QuizApp(QWidget):
                 else:
                     result_message += 'Ответ: Неправильно\n'
                     result_message += 'Правильный ответ: Отсутствует в вариантах ответов\n\n'
+                    print( result_message )
 
         if self.results_window is None:
             self.results_window = ResultsWindow(result_message)
@@ -108,10 +135,9 @@ class QuizApp(QWidget):
         else:
             self.results_window.append_results(result_message)
 
-
 class ResultsWindow(QWidget):
     def __init__(self, initial_results):
-        super().__init__()
+        super(ResultsWindow, self).__init__()
         self.setWindowTitle('Результаты')
         self.setGeometry(200, 200, 400, 600)
         self.results_text = QTextBrowser()
@@ -121,10 +147,10 @@ class ResultsWindow(QWidget):
         layout.addWidget(self.results_text)
         self.setLayout(layout)
 
+
     def append_results(self, result_message):
         current_text = self.results_text.toPlainText()
         self.results_text.setPlainText(current_text + result_message)
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
