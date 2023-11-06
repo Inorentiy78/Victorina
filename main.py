@@ -27,8 +27,16 @@ class QuestionParser:
         # Shuffle the questions and select the first 25
         random.shuffle(questions)
         selected_questions = questions[:5]
+        print(selected_questions)
 
         return selected_questions
+    
+    def read_answers(self):
+        answers = []
+        with open(self.answers_file, "r", encoding="utf-8") as answers_file:
+            answer_data = answers_file.read().split("\n")
+        answers = [int(answer.split(": ")[1]) - 1 for answer in answer_data]
+        return answers
 
 class QuizApp(QWidget):
     def __init__(self, questions):
@@ -36,10 +44,12 @@ class QuizApp(QWidget):
         self.setWindowTitle('Викторина')
         self.setGeometry(100, 100, 400, 300)
         self.questions = questions
+        self.answers = answers
         self.init_ui()
 
         self.correct_answers = []  # Для отслеживания правильных ответов
         self.results_window = None
+        
 
     def init_ui(self):
         self.current_question = 0
@@ -48,7 +58,7 @@ class QuizApp(QWidget):
         self.question_label = QLabel()
         self.radio_buttons = []
         self.submit_button = QPushButton('Ответить')
-        self.submit_button.setEnabled(False)  # Начально
+        self.submit_button.setEnabled(False)
 
         self.question_indices = list(range(len(self.questions)))
 
@@ -69,7 +79,6 @@ class QuizApp(QWidget):
         if self.current_question < len(self.questions):
             question = self.questions[self.current_question]
 
-            # Оставляем порядок вариантов ответов неизменным
             options = question["options"]
 
             self.question_label.setText(f' {question["question"]}')
@@ -93,11 +102,13 @@ class QuizApp(QWidget):
         selected_option = None
         for i, radio_button in enumerate(self.radio_buttons):
             if radio_button.isChecked():
-                selected_option = i
+                selected_option = i+1
 
-        correct_answer = self.questions[self.current_question]["correct_answer"]
+        correct_answer = self.answers[self.current_question]  # Получить правильный ответ из списка
+        print("Правильный ответ: ",correct_answer)
+        print("Выбранный ответ: ",selected_option)
         is_correct = (selected_option == correct_answer)
-        self.correct_answers.append(is_correct)  # Записываем результат
+        self.correct_answers.append(is_correct)
 
         self.current_question += 1
 
@@ -106,15 +117,15 @@ class QuizApp(QWidget):
         else:
             self.show_question()
 
-        self.update_score()  # Обновление отображаемого счета
+        self.update_score()
+
 
     def update_score(self):
-        correct_count = sum(self.correct_answers)  # Считаем количество правильных ответов
-        self.score = correct_count  # Обновляем значение self.score
+        correct_count = sum(self.correct_answers)
+        self.score = correct_count
 
     def show_result(self):
         result_message = 'Результаты:\n\n'
-
         for i, (question, is_correct) in enumerate(zip(self.questions, self.correct_answers)):
             result_message += f'Вопрос {i + 1}: {question["question"]}\n'
             if is_correct:
@@ -127,13 +138,13 @@ class QuizApp(QWidget):
                 else:
                     result_message += 'Ответ: Неправильно\n'
                     result_message += 'Правильный ответ: Отсутствует в вариантах ответов\n\n'
-                    print( result_message )
 
         if self.results_window is None:
             self.results_window = ResultsWindow(result_message)
             self.results_window.show()
         else:
             self.results_window.append_results(result_message)
+
 
 class ResultsWindow(QWidget):
     def __init__(self, initial_results):
@@ -156,6 +167,8 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     parser = QuestionParser("vopros.txt", "answers.txt")
     questions = parser.read_questions_and_answers()
+    answers = parser.read_answers()
     ex = QuizApp(questions)
+    ex.answers = answers  # Добавьте атрибут answers после инициализации
     ex.show()
     sys.exit(app.exec_())
