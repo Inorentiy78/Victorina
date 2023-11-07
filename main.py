@@ -15,14 +15,27 @@ class QuestionParser:
         with open(self.answers_file, "r", encoding="utf-8") as answers_file:
             answer_data = answers_file.read().split("\n")
 
+        if len(questions) == len(answers):
+            all_index = random.sample(range(len(questions)), 5)  # Randomly sample 5 unique indices
+
+            my_questions = []  # Create an empty list to store your selected questions
+            for i in all_index:
+                my_questions.append({
+                    "vopros": questions[i]["question"],
+                    "answers": questions[i]["options"],
+                    "correct_answers": answers[i]
+                })
+
         for question_block, answer_line in zip(question_data, answer_data):
             question_lines = question_block.split("\n")
             question = {
                 "question": question_lines[0],
                 "options": question_lines[1:5],
-                "correct_answer": int(answer_line.split(": ")[1]) - 1
+                "correct_answer": int(answer_line.split(": ")[1]) 
             }
             questions.append(question)
+
+        
 
         # Shuffle the questions and select the first 25
         random.shuffle(questions)
@@ -35,7 +48,7 @@ class QuestionParser:
         answers = []
         with open(self.answers_file, "r", encoding="utf-8") as answers_file:
             answer_data = answers_file.read().split("\n")
-        answers = [int(answer.split(": ")[1]) - 1 for answer in answer_data]
+        answers = [int(answer.split(": ")[1])  for answer in answer_data]
         return answers
 
 class QuizApp(QWidget):
@@ -103,11 +116,13 @@ class QuizApp(QWidget):
         for i, radio_button in enumerate(self.radio_buttons):
             if radio_button.isChecked():
                 selected_option = i+1
+        
+        
 
-        correct_answer = self.answers[self.current_question]  # Получить правильный ответ из списка
+        correct_answer = self.answers[self.current_question]   # Получить правильный ответ из списка
         print("Правильный ответ: ",correct_answer)
         print("Выбранный ответ: ",selected_option)
-        is_correct = (selected_option == correct_answer)
+        is_correct = (selected_option +1 == correct_answer)
         self.correct_answers.append(is_correct)
 
         self.current_question += 1
