@@ -1,54 +1,62 @@
 import random
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QRadioButton, QMessageBox, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QRadioButton, QTextBrowser
+from codirok import CodeEncode
+
+class ResultsWindow(QWidget):
+    def __init__(self, initial_results):
+        super(ResultsWindow, self).__init__()
+        self.setWindowTitle('Результаты')
+        self.setGeometry(200, 200, 400, 600)
+        self.results_text = QTextBrowser()
+        self.results_text.setPlainText(initial_results)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.results_text)
+        self.setLayout(layout)
+
+    def append_results(self, result_message):
+        current_text = self.results_text.toPlainText()
+        self.results_text.setPlainText(current_text + result_message)
 
 
-        
 class QuizApp(QWidget):
     def read_questions_and_answers(self, questions_file, answers_file):
         questions = []
-        with open(questions_file, "r", encoding="utf-8") as questions_file:
-            question_data = questions_file.read().split("---\n")
+        dencrypted_question=CodeEncode(questions_file.read(), -2)
+        question_data = dencrypted_question.split("---\n")
 
-        with open(answers_file, "r", encoding="utf-8") as answers_file:
-            answer_data = answers_file.read().split("\n")
+        dencrypted_question=CodeEncode(answers_file.read(), -2)
+        answer_data = dencrypted_question.read().split("\n")
 
-        print(len(question_data))
-        print(len(answer_data))
 
         if len(question_data) == len(answer_data):
-            all_index = random.sample(range(len(question_data)), 5)
-
-            for i in all_index:
-                question_lines = question_data[i].strip().split('\n')
-                question_text = question_lines[0].strip()
-                options = [option.strip() for option in question_lines[1:]]
-                correct_answer = int(answer_data[i])  # Предполагается, что ответы представлены в виде целых чисел
+            all_index = random.sample(range(0, len(question_data)), 5)
+            for i in range(5):
+                question_lines = question_data[all_index[i]].strip().split('\n')
+                question_text = question_lines[1].strip()
+                options = [option.strip() for option in question_lines[2:]]
+                correct_answer = int(answer_data[all_index[i]].split(': ')[1])  # Предполагается, что ответы представлены в виде целых чисел
 
                 questions.append({
-                    "vopros": question_text,
-                    "answers": options,
-                    "correct_answers": correct_answer
+                    "question": question_text,
+                    "options": options,
+                    "correct_answer": correct_answer
                 })
 
         return questions
-    
-    
-    
-    
+
     def __init__(self, que_file, ans_file):
         super().__init__()
         self.setWindowTitle('Викторина')
         self.setGeometry(100, 100, 400, 300)
         self.questions_file = que_file
         self.answers_file = ans_file
-        self.questions = self.read_questions_and_answers()
+        self.correct_answers = []
+        self.results_window = None
+        self.questions = self.read_questions_and_answers(que_file, ans_file)  # Передайте аргументы
         print(self.questions)
         self.init_ui()
-
-        self.correct_answers = []  # Для отслеживания правильных ответов
-        self.results_window = None
-        
 
     def init_ui(self):
         self.current_question = 0
@@ -80,7 +88,7 @@ class QuizApp(QWidget):
 
             options = question["options"]
 
-            self.question_label.setText(f' {question["question"]}')
+            self.question_label.setText(f'{self.current_question + 1}. {question["question"]}')
 
             for i, radio_button in enumerate(self.radio_buttons):
                 if i < len(options):
@@ -101,17 +109,11 @@ class QuizApp(QWidget):
         selected_option = None
         for i, radio_button in enumerate(self.radio_buttons):
             if radio_button.isChecked():
-                selected_option = i+1
-        
-        
+                selected_option = i + 1
 
-        correct_answer = self.answers[self.current_question]
-   # Получить правильный ответ из списка
-        print("Правильный ответ: ",correct_answer)
-        print("Выбранный ответ: ",selected_option)
-        is_correct = (selected_option - 1 == correct_answer)
+        correct_answer = self.questions[self.current_question]["correct_answer"]
+        is_correct = (selected_option == correct_answer)
         self.correct_answers.append(is_correct)
-
         self.current_question += 1
 
         if self.current_question == len(self.questions):
@@ -121,9 +123,8 @@ class QuizApp(QWidget):
 
         self.update_score()
 
-
     def update_score(self):
-        correct_count = sum(self.correct_answers)
+        correct_count = sum(1 for is_correct in self.correct_answers if is_correct)
         self.score = correct_count
 
     def show_result(self):
@@ -148,25 +149,11 @@ class QuizApp(QWidget):
             self.results_window.append_results(result_message)
 
 
-class ResultsWindow(QWidget):
-    def __init__(self, initial_results):
-        super(ResultsWindow, self).__init__()
-        self.setWindowTitle('Результаты')
-        self.setGeometry(200, 200, 400, 600)
-        self.results_text = QTextBrowser()
-        self.results_text.setPlainText(initial_results)
-
-        layout = QVBoxLayout()
-        layout.addWidget(self.results_text)
-        self.setLayout(layout)
 
 
-    def append_results(self, result_message):
-        current_text = self.results_text.toPlainText()
-        self.results_text.setPlainText(current_text + result_message)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = QuizApp("vopros.txt", "answers.txt")  
+    ex = QuizApp(que_file="newshifr.txt", ans_file="shifr_answers.txt")
     ex.show()
     sys.exit(app.exec_())
