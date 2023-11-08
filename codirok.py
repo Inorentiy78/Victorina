@@ -1,8 +1,9 @@
-alfavit = "1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯАБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ.+-/+_()&^%$#@!?><\""
-
+alfavit = "ABCDEFGHIJKLMNOPQRSTUVWXYZБГДЁЖЗИЙЛПУФЦЧШЩЪЫЬЭЮЯ"
+chisla = "1234567890"
+sim = ",.-/+_()&^%$#@!?><\""
 def CodeEncode(text: str, k: int):
     # добавляем в алфавит маленькие буквы
-    fullAlfavit = alfavit + alfavit.lower()
+    fullAlfavit = alfavit + alfavit.lower() + chisla + sim
     letterQty = len(fullAlfavit)
     retVal = ""
     for item in text:
@@ -15,22 +16,23 @@ def CodeEncode(text: str, k: int):
 
     return retVal
 
-# Чтение вопросов из файла
-with open("vopros.txt", "r", encoding="utf-8") as file:
-    voprosy = file.read()
+if __name__ == '__main__':
+    # Чтение вопросов из файла
+    with open("vopros.txt", "r", encoding="utf-8") as file:
+        voprosy = file.read()
 
-with open("answers.txt", "r", encoding="utf-8") as file:
-    answersy = file.read()
+    with open("answers.txt", "r", encoding="utf-8") as file:
+        answersy = file.read()
 
-key = 2
-encryptedQuestions = CodeEncode(voprosy, key)
-ncryptedQuestions = CodeEncode(answersy, key)
+    key = 2
+    encryptedQuestions = CodeEncode(voprosy, key)
+    ncryptedQuestions = CodeEncode(answersy, key)
 
-# Запись зашифрованных вопросов в файл "newshifr.txt"
-with open("newshifr.txt", "w", encoding="utf-8") as file:
-    file.write(encryptedQuestions)
+    # Запись зашифрованных вопросов в файл "newshifr.txt"
+    with open("newshifr.txt", "w", encoding="utf-8") as file:
+        file.write(encryptedQuestions)
 
 
-with open("shifr_answers.txt", "w", encoding="utf-8") as file:
-    file.write(ncryptedQuestions)
+    with open("shifr_answers.txt", "w", encoding="utf-8") as file:
+        file.write(ncryptedQuestions)
 
