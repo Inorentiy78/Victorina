@@ -1,68 +1,47 @@
 import random
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QRadioButton, QMessageBox, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QRadioButton, QTextBrowser
 
-class QuestionParser:
-    def __init__(self, questions_file, answers_file):
-        self.questions_file = questions_file
-        self.answers_file = answers_file
-
-    def read_questions_and_answers(self):
-        questions = []
-        with open(self.questions_file, "r", encoding="utf-8") as questions_file:
-            question_data = questions_file.read().split("---\n")
-
-        with open(self.answers_file, "r", encoding="utf-8") as answers_file:
-            answer_data = answers_file.read().split("\n")
-
-        if len(questions) == len(answer_data):  # Проверьте длину answer_data
-            all_index = random.sample(range(len(questions)), 5)  # Randomly sample 5 unique indices
-
-            my_questions = []  # Create an empty list to store your selected questions
-            for i in all_index:
-                my_questions.append({
-                    "vopros": questions[i]["question"],
-                    "answers": questions[i]["options"],
-                    "correct_answers": answers[i]
-                })
-
-        for question_block, answer_line in zip(question_data, answer_data):
-            question_lines = question_block.split("\n")
-            question = {
-                "question": question_lines[0],
-                "options": question_lines[1:5],
-                "correct_answer": int(answer_line.split(": ")[1]) 
-            }
-            questions.append(question)
-
-        
-
-        # Shuffle the questions and select the first 25
-        random.shuffle(questions)
-        selected_questions = questions[:5]
-        print(selected_questions)
-
-        return selected_questions
-    
-    def read_answers(self):
-        answers = []
-        with open(self.answers_file, "r", encoding="utf-8") as answers_file:
-            answer_data = answers_file.read().split("\n")
-        answers = [int(answer.split(": ")[1]) if len(answer.split(": ")) > 1 else 0 for answer in answer_data]
-        return answers
 
 class QuizApp(QWidget):
-    def __init__(self, questions, answers):
+    def read_questions_and_answers(self, questions_file, answers_file):
+        questions = []
+        with open(questions_file, "r", encoding="utf-8") as questions_file:
+            question_data = questions_file.read().split("---\n")
+
+        with open(answers_file, "r", encoding="utf-8") as answers_file:
+            answer_data = answers_file.read().split("\n")
+
+        print(len(question_data))
+        print(len(answer_data))
+
+        if len(question_data) == len(answer_data):
+            for i in range(len(question_data)):
+                if question_data[i].strip().startswith("#"):
+                    continue  # Пропустить комментарии (строки, начинающиеся с "#")
+
+                question_lines = question_data[i].strip().split('\n')
+                question_text = question_lines[1].strip()
+                options = [option.strip() for option in question_lines[2:]]
+                correct_answer = int(answer_data[i])  # Предполагается, что ответы представлены в виде целых чисел
+
+                questions.append({
+                    "question": question_text,
+                    "options": options,
+                    "correct_answer": correct_answer
+                })
+
+        return questions
+
+    def __init__(self, que_file, ans_file):
         super().__init__()
         self.setWindowTitle('Викторина')
         self.setGeometry(100, 100, 400, 300)
-        self.questions = questions
-        self.answers = answers
+        self.questions_file = que_file
+        self.answers_file = ans_file
+        self.questions = self.read_questions_and_answers(que_file, ans_file)  # Передайте аргументы
+        print(self.questions)
         self.init_ui()
-
-        self.correct_answers = []  # Для отслеживания правильных ответов
-        self.results_window = None
-        
 
     def init_ui(self):
         self.current_question = 0
@@ -77,7 +56,7 @@ class QuizApp(QWidget):
 
         layout = QVBoxLayout()
         layout.addWidget(self.question_label)
-        for _ in range(len(self.questions[0]["options"])):
+        for _ in range(4):
             radio_button = QRadioButton()
             radio_button.toggled.connect(self.enable_submit)
             self.radio_buttons.append(radio_button)
@@ -94,7 +73,7 @@ class QuizApp(QWidget):
 
             options = question["options"]
 
-            self.question_label.setText(f' {question["question"]}')
+            self.question_label.setText(f'{self.current_question + 1}. {question["question"]}')
 
             for i, radio_button in enumerate(self.radio_buttons):
                 if i < len(options):
@@ -115,17 +94,10 @@ class QuizApp(QWidget):
         selected_option = None
         for i, radio_button in enumerate(self.radio_buttons):
             if radio_button.isChecked():
-                selected_option = i+1
-        
-        
+                selected_option = i + 1
 
-        correct_answer = self.answers[self.current_question]
-   # Получить правильный ответ из списка
-        print("Правильный ответ: ",correct_answer)
-        print("Выбранный ответ: ",selected_option)
-        is_correct = (selected_option - 1 == correct_answer)
-        self.correct_answers.append(is_correct)
-
+        correct_answer = self.questions[self.current_question]["correct_answer"]
+        is_correct = (selected_option == correct_answer)
         self.current_question += 1
 
         if self.current_question == len(self.questions):
@@ -135,9 +107,8 @@ class QuizApp(QWidget):
 
         self.update_score()
 
-
     def update_score(self):
-        correct_count = sum(self.correct_answers)
+        correct_count = sum(1 for is_correct in self.correct_answers if is_correct)
         self.score = correct_count
 
     def show_result(self):
@@ -174,16 +145,13 @@ class ResultsWindow(QWidget):
         layout.addWidget(self.results_text)
         self.setLayout(layout)
 
-
     def append_results(self, result_message):
         current_text = self.results_text.toPlainText()
         self.results_text.setPlainText(current_text + result_message)
 
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    parser = QuestionParser("vopros.txt", "answers.txt")
-    questions = parser.read_questions_and_answers()
-    answers = parser.read_answers()
-    ex = QuizApp(questions, answers)  # Передайте как 'questions', так и 'answers' в конструктор
+    ex = QuizApp(que_file="vopros.txt", ans_file="answers.txt")
     ex.show()
     sys.exit(app.exec_())
