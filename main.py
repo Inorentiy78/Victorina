@@ -15,7 +15,7 @@ class QuestionParser:
         with open(self.answers_file, "r", encoding="utf-8") as answers_file:
             answer_data = answers_file.read().split("\n")
 
-        if len(questions) == len(answers):
+        if len(questions) == len(answer_data):  # Проверьте длину answer_data
             all_index = random.sample(range(len(questions)), 5)  # Randomly sample 5 unique indices
 
             my_questions = []  # Create an empty list to store your selected questions
@@ -48,11 +48,11 @@ class QuestionParser:
         answers = []
         with open(self.answers_file, "r", encoding="utf-8") as answers_file:
             answer_data = answers_file.read().split("\n")
-        answers = [int(answer.split(": ")[1])  for answer in answer_data]
+        answers = [int(answer.split(": ")[1]) if len(answer.split(": ")) > 1 else 0 for answer in answer_data]
         return answers
 
 class QuizApp(QWidget):
-    def __init__(self, questions):
+    def __init__(self, questions, answers):
         super().__init__()
         self.setWindowTitle('Викторина')
         self.setGeometry(100, 100, 400, 300)
@@ -119,10 +119,11 @@ class QuizApp(QWidget):
         
         
 
-        correct_answer = self.answers[self.current_question]   # Получить правильный ответ из списка
+        correct_answer = self.answers[self.current_question]
+   # Получить правильный ответ из списка
         print("Правильный ответ: ",correct_answer)
         print("Выбранный ответ: ",selected_option)
-        is_correct = (selected_option +1 == correct_answer)
+        is_correct = (selected_option - 1 == correct_answer)
         self.correct_answers.append(is_correct)
 
         self.current_question += 1
@@ -183,7 +184,6 @@ if __name__ == '__main__':
     parser = QuestionParser("vopros.txt", "answers.txt")
     questions = parser.read_questions_and_answers()
     answers = parser.read_answers()
-    ex = QuizApp(questions)
-    ex.answers = answers  # Добавьте атрибут answers после инициализации
+    ex = QuizApp(questions, answers)  # Передайте как 'questions', так и 'answers' в конструктор
     ex.show()
     sys.exit(app.exec_())
