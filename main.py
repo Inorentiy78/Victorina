@@ -23,38 +23,50 @@ class ResultsWindow(QWidget):
 class QuizApp(QWidget):
     def read_questions_and_answers(self, questions_file, answers_file):
         questions = []
-        dencrypted_question=CodeEncode(questions_file.read(), -2)
-        question_data = dencrypted_question.split("---\n")
+        with open(questions_file, "r", encoding="utf-8") as file:
+            decrypted_questions = CodeEncode(file.read(), -2)
+            question_data = decrypted_questions.split("---\n")
 
-        dencrypted_question=CodeEncode(answers_file.read(), -2)
-        answer_data = dencrypted_question.read().split("\n")
+        with open(answers_file, "r", encoding="utf-8") as file:
+            decrypted_answers = CodeEncode(file.read(), -2)
+            answer_data = decrypted_answers.split("\n")
+        print(question_data[0:200])
+        print(len(question_data))
+        print(len(answer_data))
 
-
-        if len(question_data) == len(answer_data):
+        if len(question_data) == len(answer_data):  
             all_index = random.sample(range(0, len(question_data)), 5)
             for i in range(5):
-                question_lines = question_data[all_index[i]].strip().split('\n')
-                question_text = question_lines[1].strip()
-                options = [option.strip() for option in question_lines[2:]]
-                correct_answer = int(answer_data[all_index[i]].split(': ')[1])  # Предполагается, что ответы представлены в виде целых чисел
+                try:
+                    # Use CodeEncode without calling read()
+                    question_lines = CodeEncode(question_data[all_index[i]], 2).split('\n')
+                    question_text = question_lines[1].strip()
+                    options = [option.strip() for option in question_lines[2:]]
+                    correct_answer = int(answer_data[all_index[i]].split(': ')[1])  # Предполагается, что ответы представлены в виде целых чисел
 
-                questions.append({
-                    "question": question_text,
-                    "options": options,
-                    "correct_answer": correct_answer
-                })
+                    questions.append({
+                        "question": question_text,
+                        "options": options,
+                        "correct_answer": correct_answer
+                    })
+                except Exception as e:
+                    print(f"Error reading question {i + 1}: {e}")
+
+        print("Final Questions:")
+        print(questions)
 
         return questions
-
-    def __init__(self, que_file, ans_file):
+    
+    
+    def __init__(self, questions_file, answers_file):
         super().__init__()
         self.setWindowTitle('Викторина')
         self.setGeometry(100, 100, 400, 300)
-        self.questions_file = que_file
-        self.answers_file = ans_file
+        self.questions_file = questions_file
+        self.answers_file = answers_file
         self.correct_answers = []
         self.results_window = None
-        self.questions = self.read_questions_and_answers(que_file, ans_file)  # Передайте аргументы
+        self.questions = self.read_questions_and_answers(questions_file, answers_file)  # Передайте аргументы
         print(self.questions)
         self.init_ui()
 
@@ -154,6 +166,6 @@ class QuizApp(QWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = QuizApp(que_file="newshifr.txt", ans_file="shifr_answers.txt")
+    ex = QuizApp(questions_file="newshifr.txt", answers_file="shifr_answers.txt")
     ex.show()
     sys.exit(app.exec_())
