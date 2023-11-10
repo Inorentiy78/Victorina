@@ -35,8 +35,8 @@ class QuizApp(QWidget):
         
 
         if len(question_data) == len(answer_data):  
-            all_index = random.sample(range(0, len(question_data)), 5)
-            for i in range(5):
+            all_index = random.sample(range(0, len(question_data)), 25)
+            for i in range(25):
                 try:
                     # Use CodeEncode without calling read()
                     question_lines = question_data[all_index[i]].strip().split('\n')
