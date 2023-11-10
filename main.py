@@ -1,13 +1,15 @@
 import random
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QRadioButton, QTextBrowser
+from PyQt5.QtGui import QFont  # Import QFont
+
 from codirok import CodeEncode
 
 class ResultsWindow(QWidget):
     def __init__(self, initial_results):
         super(ResultsWindow, self).__init__()
         self.setWindowTitle('Результаты')
-        self.setGeometry(200, 200, 400, 600)
+        self.setGeometry(250, 250, 450, 600)
         self.results_text = QTextBrowser()
         self.results_text.setPlainText(initial_results)
 
@@ -30,10 +32,11 @@ class QuizApp(QWidget):
         with open(answers_file, "r", encoding="utf-8") as answers_file:
             decrypted_answers = CodeEncode(answers_file.read(), -2)
             answer_data = decrypted_answers.split("\n")
+        
 
         if len(question_data) == len(answer_data):  
-            all_index = random.sample(range(0, len(question_data)), 25)
-            for i in range(25):
+            all_index = random.sample(range(0, len(question_data)), 5)
+            for i in range(5):
                 try:
                     # Use CodeEncode without calling read()
                     question_lines = question_data[all_index[i]].strip().split('\n')
@@ -49,7 +52,9 @@ class QuizApp(QWidget):
                 except Exception as e:
                     print(f"Error reading question {i + 1}: {e}")
 
+
         return questions
+    
     
     
     def __init__(self, questions_file, answers_file):
@@ -60,27 +65,59 @@ class QuizApp(QWidget):
         self.answers_file = answers_file
         self.correct_answers = []
         self.results_window = None
-        self.questions = self.read_questions_and_answers(questions_file, answers_file)  # Передайте аргументы
+        self.questions = self.read_questions_and_answers(questions_file, answers_file)
+                                                                        
+
         self.init_ui()
+
+
 
     def init_ui(self):
         self.current_question = 0
         self.score = 0
 
         self.question_label = QLabel()
+        self.question_label.setFont(QFont("Arial", 12, QFont.Bold))  # Set bold font for the question label
         self.radio_buttons = []
         self.submit_button = QPushButton('Ответить')
         self.submit_button.setEnabled(False)
+        
+
+        self.question_indices = list(range(len(self.questions)))
+        self.setStyleSheet("background-color:  blue;")  
+        self.setStyleSheet("background-color: gray;")
+
+        self.question_label = QLabel()
+        self.question_label.setFont(QFont(
+
+"Arial", 12, QFont.Bold))  # Set bold font for the question label
+        self.radio_buttons = []
+        self.submit_button = QPushButton('Ответить')
+        self.submit_button.setEnabled(False)
+        self.submit_button.setStyleSheet("background-color: black;")
+
+        # Set the background color of the "Ответить" button to green
+        self.submit_button.setStyleSheet("background-color: black;")
+        self.submit_button.setStyleSheet("background-color: green;")
 
         self.question_indices = list(range(len(self.questions)))
 
         layout = QVBoxLayout()
         layout.addWidget(self.question_label)
+        
+
+        layout = QVBoxLayout()
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.question_label)
         for _ in range(4):
             radio_button = QRadioButton()
+            radio_button.setStyleSheet("background-color: white;")
             radio_button.toggled.connect(self.enable_submit)
+            radio_button.setFont(QFont("Arial", 12))  # Set the font for radio buttons
             self.radio_buttons.append(radio_button)
             layout.addWidget(radio_button)
+        self.submit_button.setFont(QFont("Arial", 12))  # Set the font for the submit button
         layout.addWidget(self.submit_button)
         self.setLayout(layout)
 
@@ -134,6 +171,9 @@ class QuizApp(QWidget):
 
     def show_result(self):
         result_message = 'Результаты:\n\n'
+        font_size = 12  # Измените этот размер на нужный вам
+        font = QFont("Arial", font_size)
+
         for i, (question, is_correct) in enumerate(zip(self.questions, self.correct_answers)):
             result_message += f'Вопрос {i + 1}: {question["question"]}\n'
             if is_correct:
@@ -147,14 +187,10 @@ class QuizApp(QWidget):
                     result_message += 'Ответ: Неправильно\n'
                     result_message += 'Правильный ответ: Отсутствует в вариантах ответов\n\n'
 
-        if self.results_window is None:
-            self.results_window = ResultsWindow(result_message)
-            self.results_window.show()
-        else:
-            self.results_window.append_results(result_message)
-
-
-
+        font.setBold(False)  # Установите жирный стиль, если это также необходимо
+        self.results_window = ResultsWindow(result_message)
+        self.results_window.results_text.setFont(font)
+        self.results_window.show()
 
 
 if __name__ == '__main__':
