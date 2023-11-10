@@ -23,12 +23,12 @@ class ResultsWindow(QWidget):
 class QuizApp(QWidget):
     def read_questions_and_answers(self, questions_file, answers_file):
         questions = []
-        with open(questions_file, "r", encoding="utf-8") as file:
-            decrypted_questions = CodeEncode(file.read(), -2)
+        with open(questions_file, "r", encoding="utf-8") as questions_file:
+            decrypted_questions = CodeEncode(questions_file.read(), -2)
             question_data = decrypted_questions.split("---\n")
 
-        with open(answers_file, "r", encoding="utf-8") as file:
-            decrypted_answers = CodeEncode(file.read(), -2)
+        with open(answers_file, "r", encoding="utf-8") as answers_file:
+            decrypted_answers = CodeEncode(answers_file.read(), -2)
             answer_data = decrypted_answers.split("\n")
         print(question_data[0:200])
         print(len(question_data))
@@ -39,7 +39,7 @@ class QuizApp(QWidget):
             for i in range(5):
                 try:
                     # Use CodeEncode without calling read()
-                    question_lines = CodeEncode(question_data[all_index[i]], 2).split('\n')
+                    question_lines = question_data[all_index[i]].strip().split('\n')
                     question_text = question_lines[1].strip()
                     options = [option.strip() for option in question_lines[2:]]
                     correct_answer = int(answer_data[all_index[i]].split(': ')[1])  # Предполагается, что ответы представлены в виде целых чисел
