@@ -30,9 +30,6 @@ class QuizApp(QWidget):
         with open(answers_file, "r", encoding="utf-8") as answers_file:
             decrypted_answers = CodeEncode(answers_file.read(), -2)
             answer_data = decrypted_answers.split("\n")
-        print(question_data[0:200])
-        print(len(question_data))
-        print(len(answer_data))
 
         if len(question_data) == len(answer_data):  
             all_index = random.sample(range(0, len(question_data)), 5)
@@ -52,9 +49,6 @@ class QuizApp(QWidget):
                 except Exception as e:
                     print(f"Error reading question {i + 1}: {e}")
 
-        print("Final Questions:")
-        print(questions)
-
         return questions
     
     
@@ -67,7 +61,6 @@ class QuizApp(QWidget):
         self.correct_answers = []
         self.results_window = None
         self.questions = self.read_questions_and_answers(questions_file, answers_file)  # Передайте аргументы
-        print(self.questions)
         self.init_ui()
 
     def init_ui(self):
